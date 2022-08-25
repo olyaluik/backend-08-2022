@@ -58,6 +58,12 @@ public class OrderController {
                 @PathParam("order_reference") String orderId,
                 @PathParam ("payment_reference") String paymentReference) {
 
+        //teha päring Everypaysse nagu tegime makse
+        //saadan kaasa paymentReference
+        //ENDPOINT: payments/:payment_reference
+        //response.getBody() <-- tema saab vastu, kas on makse:
+        //Settled, Voided, Failed, Cancelled
+
         return "Makse õnnestus"  + orderId + paymentReference;
     }
 
