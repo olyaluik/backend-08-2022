@@ -58,7 +58,7 @@ public class OrderController {
                 @PathParam("order_reference") String orderId,
                 @PathParam ("payment_reference") String paymentReference) {
 
-        return "Makse õnnestus";
+        return "Makse õnnestus"  + orderId + paymentReference;
     }
 
 }
