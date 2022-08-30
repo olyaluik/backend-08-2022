@@ -20,6 +20,8 @@ public class Order {
 
     private double totalSum;
 
+    private String paidState;
+
     @ManyToMany
     private List<Product> products;
 
