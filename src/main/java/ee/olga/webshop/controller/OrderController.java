@@ -86,12 +86,15 @@ public class OrderController {
             switch (response.getBody().payment_state) {
                 case "settled":
                     order.setPaidState("settled");
+                    orderRepository.save(order);
                     return "Makse õnnestus: " + order_reference;
                 case "failed":
                     order.setPaidState("failed");
+                    orderRepository.save(order);
                     return "Makse ebaõnnestunud: " + order_reference;
                 case "cancelled":
                     order.setPaidState("cancelled");
+                    orderRepository.save(order);
                     return "Makse katkestati: " + order_reference;
                 default:
                     return "Makse ei toiminud: " + order_reference;
