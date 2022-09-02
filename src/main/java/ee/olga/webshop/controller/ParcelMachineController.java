@@ -5,6 +5,7 @@ import ee.olga.webshop.controller.model.ParcelMachines;
 import ee.olga.webshop.controller.model.SmartPostParcelMachine;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,7 +21,7 @@ import java.util.stream.Collectors;
 public class ParcelMachineController {
 //{omniva:OmnivaParcelMachines[], smartpost:SmartPostParcelMachine[]}
     @GetMapping("parcel-machines/{country}")
-    public ParcelMachines getParcelMachines(@PathVariable String country) {
+    public ResponseEntity<ParcelMachines> getParcelMachines(@PathVariable String country) {
         //country = country.toLowerCase();
         //teeb HTTP päringu omniva.ee/locations.json lehele
         //võtab kõik pakiautomaadid
@@ -54,7 +55,7 @@ public class ParcelMachineController {
         }
 
         //lõpuks teeb returni
-        return parcelMachines;
+        return new ResponseEntity<>(parcelMachines, HttpStatus.OK);
     }
 
 //    @GetMapping("parcel-machines2")

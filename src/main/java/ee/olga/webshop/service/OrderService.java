@@ -3,13 +3,14 @@ package ee.olga.webshop.service;
 import ee.olga.webshop.cache.ProductCache;
 import ee.olga.webshop.controller.model.EveryPayData;
 import ee.olga.webshop.controller.model.EveryPayResponse;
+import ee.olga.webshop.controller.model.EveryPayState;
 import ee.olga.webshop.entity.Order;
 import ee.olga.webshop.entity.Person;
 import ee.olga.webshop.entity.Product;
 import ee.olga.webshop.repository.OrderRepository;
 import ee.olga.webshop.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jdbc.core.JdbcAggregateOperations;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -33,10 +34,21 @@ public class OrderService {
 
     @Autowired
     ProductCache productCache;
+    @Autowired
+    RestTemplate restTemplate;
 
-    private String apiUserName = "92ddcfab96e34a5f";
-    private String accountName = "EUR3D1";
-    private String customerUrl = "https://olya-webshop.herokuapp.com/payment-completed";
+    @Value("${everypay.username}")
+    private String apiUserName;
+    @Value("${everypay.account}")
+    private String accountName;
+    @Value("${everypay.customerurl}")
+    private String customerUrl;
+
+    @Value("${everypay.headers}")
+    private String everyPayHeaders;
+
+    @Value("${everypay.url}")
+    private String everyPayUrl;
 
     public List<Product> findOriginalProducts(List<Product> products) {
 
@@ -83,15 +95,9 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
-    public String getLinkFromEverypay(Order order) {
-
-        //@Autowired
-        RestTemplate restTemplate = new RestTemplate();
+    public String getLinkFromEveryPay(Order order) {
 
         String url = "https://igw-demo.every-pay.com/api/v4/payments/oneoff";
-
-        System.out.println(new Date());
-        System.out.println(LocalDateTime.now());
 
         //HttpEntity <-- kogub kokku päringuga seotud sisu body: vasakul ja headers: paremal
         EveryPayData data = new EveryPayData();
@@ -104,12 +110,47 @@ public class OrderService {
         data.setCustomer_url(customerUrl);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Basic OTJkZGNmYWI5NmUzNGE1Zjo4Y2QxOWU5OWU5YzJjMjA4ZWU1NjNhYmY3ZDBlNGRhZA==");
+        headers.set("Authorization", everyPayHeaders);
 
         HttpEntity<EveryPayData> entity = new HttpEntity<>(data, headers);
 
         ResponseEntity<EveryPayResponse> response = restTemplate.exchange(url, HttpMethod.POST, entity, EveryPayResponse.class);
 
         return response.getBody().payment_link;
+    }
+
+    public String checkIfOrderIsPaid(String payment_reference) {
+        String url = everyPayUrl + "/payments/" + payment_reference + "?api_username=" + apiUserName;
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", everyPayHeaders);
+        HttpEntity<String> httpEntity = new HttpEntity<>(headers);
+        ResponseEntity<EveryPayState> response = restTemplate.exchange(url, HttpMethod.GET, httpEntity, EveryPayState.class);
+
+        if (response.getBody()!=null) {
+            String order_reference = response.getBody().order_reference;
+            Order order = orderRepository.findById(Long.parseLong(order_reference)).get();
+            return getPaymentState(response, order_reference, order);
+        } else {
+            return "Ühenduse viga!";
+        }
+    }
+
+    private String getPaymentState(ResponseEntity<EveryPayState> response, String order_reference, Order order) {
+        switch (response.getBody().payment_state) {
+            case "settled":
+                order.setPaidState("settled");
+                orderRepository.save(order);
+                return "Makse õnnestus: " + order_reference;
+            case "failed":
+                order.setPaidState("failed");
+                orderRepository.save(order);
+                return "Makse ebaõnnestunud: " + order_reference;
+            case "cancelled":
+                order.setPaidState("cancelled");
+                orderRepository.save(order);
+                return "Makse katkestati: " + order_reference;
+            default:
+                return "Makse ei toiminud: " + order_reference;
+        }
     }
 }

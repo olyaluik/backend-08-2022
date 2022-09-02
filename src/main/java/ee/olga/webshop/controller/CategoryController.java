@@ -3,6 +3,8 @@ package ee.olga.webshop.controller;
 import ee.olga.webshop.entity.Category;
 import ee.olga.webshop.repository.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,19 +16,20 @@ public class CategoryController {
     CategoryRepository categoryRepository;
 
     @GetMapping("category")
-    public List<Category> getCategories() {
-        return categoryRepository.findAll();
+    public ResponseEntity<List<Category>> getCategories() {
+
+        return new ResponseEntity<>(categoryRepository.findAll(), HttpStatus.OK);
     }
 
     @PostMapping("category")
-    public List<Category> addCategory(@RequestBody Category category) {
+    public ResponseEntity<List<Category>> addCategory(@RequestBody Category category) {
         categoryRepository.save(category);
-        return categoryRepository.findAll();
+        return new ResponseEntity<>(categoryRepository.findAll(), HttpStatus.CREATED);
     }
 
     @DeleteMapping("category/{id}")
-    public List<Category> deleteCategory(@PathVariable Long id) {
+    public ResponseEntity<List<Category>> deleteCategory(@PathVariable Long id) {
         categoryRepository.deleteById(id);
-        return categoryRepository.findAll();
+        return new ResponseEntity<>(categoryRepository.findAll(), HttpStatus.OK);
     }
 }
