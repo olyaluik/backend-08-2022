@@ -1,23 +1,25 @@
 package ee.olga.webshop.controller;
 
 import ee.olga.webshop.cache.ProductCache;
+import ee.olga.webshop.entity.Category;
 import ee.olga.webshop.entity.Product;
+import ee.olga.webshop.repository.CategoryRepository;
 import ee.olga.webshop.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 @RestController
+@CrossOrigin("http://localhost:3000")
 public class ProductController {
     List<Product> products = new ArrayList<>();
 
@@ -50,7 +52,7 @@ public class ProductController {
     public ResponseEntity<List<Product>> addProduct(@RequestBody Product product) {
        // products.add(product);
         productRepository.save(product);
-        return new ResponseEntity<>(productRepository.findAll(), HttpStatus.OK);
+        return new ResponseEntity<>(productRepository.findAllByOrderById(), HttpStatus.OK);
     }
 
     @PutMapping("edit-product/{index}") //PUT localhost:8080/edit-product
@@ -61,14 +63,14 @@ public class ProductController {
             productCache.emptyCache();
         }
 
-        return new ResponseEntity<>(productRepository.findAll(), HttpStatus.OK);
+        return new ResponseEntity<>(productRepository.findAllByOrderById(), HttpStatus.OK);
     }
 
-    @DeleteMapping("delete-product/{index}")
+    @DeleteMapping("delete-product/{id}")
     public ResponseEntity<List<Product>> deleteProduct(@PathVariable Long id) {
         productRepository.deleteById(id);
         productCache.emptyCache();
-        return new ResponseEntity<>(productRepository.findAll(), HttpStatus.OK);
+        return new ResponseEntity<>(productRepository.findAllByOrderById(), HttpStatus.OK);
     }
 
     @GetMapping("get-product/{id}")
@@ -91,10 +93,10 @@ public class ProductController {
     public ResponseEntity<List<Product>> decreaseStock(@RequestBody Product product) {
         Product originalProduct = productRepository.findById(product.getId()).get();
         if (originalProduct.getStock() > 0) {
-            originalProduct.setStock(originalProduct.getStock()-1);
+            originalProduct.setStock(originalProduct.getStock() - 1);
             productRepository.save(product);
         }
-        return new ResponseEntity<>(productRepository.findAll(), HttpStatus.OK);
+        return new ResponseEntity<>(productRepository.findAllByOrderById(), HttpStatus.OK);
     }
 
 
@@ -123,6 +125,18 @@ public class ProductController {
     public Page<Product> getProductsPerPage(@PathVariable int pagenr) {
         Pageable pageable = PageRequest.of(pagenr, 2);
         return productRepository.findAll(pageable);
+    }
+
+    @Autowired
+    CategoryRepository categoryRepository;
+
+    @GetMapping("products-by-category/{categoryId}")
+    public List<Long> getProductsByCategory(@PathVariable Long categoryId) {
+        Category category = categoryRepository.findById(categoryId).get();
+        List<Long> ids = productRepository.findAllByCategoryOrderByIdAsc(category).stream()
+                .map(Product::getId)
+                .collect(Collectors.toList());
+        return ids;
     }
 
     //Pagination ->võtmine lehekülje kaupa

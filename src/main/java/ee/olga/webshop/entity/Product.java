@@ -15,9 +15,11 @@ import javax.validation.constraints.Null;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@SequenceGenerator(name="seq_product", initialValue = 1, allocationSize = 1)
 @Entity
 public class Product {
     @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_product")
     private Long id;
     private String name;
     private double price;

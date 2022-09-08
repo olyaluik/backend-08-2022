@@ -29,7 +29,12 @@ public class ControllerExceptionHandler {
 
     @ExceptionHandler()
     public ResponseEntity<ExceptionResponse> handleError(HttpRequestMethodNotSupportedException e) {
-        ExceptionResponse response = getExceptionResponse(HttpStatus.BAD_REQUEST, "Body is missing");
+        ExceptionResponse response = getExceptionResponse(HttpStatus.BAD_REQUEST, "Wrong method type");
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+    @ExceptionHandler()
+    public ResponseEntity<ExceptionResponse> handleError(CategoryInUseException e) {
+        ExceptionResponse response = getExceptionResponse(HttpStatus.BAD_REQUEST, "CATEGORY_IS_IN_USE");
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
     private static ExceptionResponse getExceptionResponse(HttpStatus notFound, String e) {

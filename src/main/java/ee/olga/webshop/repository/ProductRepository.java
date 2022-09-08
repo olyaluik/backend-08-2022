@@ -1,5 +1,6 @@
 package ee.olga.webshop.repository;
 
+import ee.olga.webshop.entity.Category;
 import ee.olga.webshop.entity.Product;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,4 +15,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findAllByStockGreaterThanAndActiveEqualsOrderByIdAsc(int stock, boolean active, Pageable pageable);
 
     List<Product> findAllByStockGreaterThanAndActiveEqualsOrderByIdAsc(int stock, boolean active);
+
+    List<Product> findAllByCategoryOrderByIdAsc(Category category);
+
+    List<Product> findAllByOrderById();
 }
