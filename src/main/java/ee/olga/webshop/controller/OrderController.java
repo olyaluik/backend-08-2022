@@ -1,5 +1,7 @@
 package ee.olga.webshop.controller;
 
+import ee.olga.webshop.controller.model.EveryPayResponse;
+import ee.olga.webshop.entity.Category;
 import ee.olga.webshop.entity.Order;
 import ee.olga.webshop.entity.Person;
 import ee.olga.webshop.entity.Product;
@@ -14,8 +16,10 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.websocket.server.PathParam;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
+
 public class OrderController {
 
     @Autowired
@@ -27,6 +31,9 @@ public class OrderController {
     @Autowired
     OrderService orderService;
 
+    @Autowired
+    ProductRepository productRepository;
+
     @GetMapping("orders/{personCode}")
     public ResponseEntity<List<Order>> getPersonOrders(@PathVariable String personCode) {
         Person person = personRepository.findById(personCode).get();
@@ -34,7 +41,7 @@ public class OrderController {
     }
 
     @PostMapping("orders/{personCode}")
-    public ResponseEntity<String> addNewOrder(@PathVariable String personCode, @RequestBody List<Product> products) {
+    public ResponseEntity<EveryPayResponse> addNewOrder(@PathVariable String personCode, @RequestBody List<Product> products) {
 
         List<Product> originalProducts = orderService.findOriginalProducts(products);
 
@@ -50,6 +57,15 @@ public class OrderController {
         public ResponseEntity<String> checkIfPaid(@PathParam ("payment_reference") String payment_reference) {
 
       return new ResponseEntity<>(orderService.checkIfOrderIsPaid(payment_reference), HttpStatus.OK);
+    }
+
+    @GetMapping("orders-by-product/{productID}")
+    public List<Long> getOrdersByProduct(@PathVariable Long productID) {
+        Product product = productRepository.findById(productID).get();
+        List<Long> ids = orderRepository.findAllByProductsOrderByIdAsc(product).stream()
+                .map(Order::getId)
+                .collect(Collectors.toList());
+        return ids;
     }
 
 }

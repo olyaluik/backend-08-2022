@@ -1,11 +1,14 @@
 package ee.olga.webshop.controller;
 
 import ee.olga.webshop.cache.ProductCache;
+import ee.olga.webshop.controller.exceptions.CategoryInUseException;
+import ee.olga.webshop.controller.exceptions.ProductInUseException;
 import ee.olga.webshop.entity.Category;
 import ee.olga.webshop.entity.Product;
 import ee.olga.webshop.repository.CategoryRepository;
 import ee.olga.webshop.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,7 +22,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 @RestController
-@CrossOrigin("http://localhost:3000")
+
 public class ProductController {
     List<Product> products = new ArrayList<>();
 
@@ -58,7 +61,7 @@ public class ProductController {
     @PutMapping("edit-product/{index}") //PUT localhost:8080/edit-product
     public ResponseEntity<List<Product>> editProduct(@RequestBody Product product, @PathVariable int index) {
         //products.set(index, product);
-        if (!productRepository.existsById(product.getId())) {
+        if (productRepository.existsById(product.getId())) {
             productRepository.save(product);
             productCache.emptyCache();
         }
@@ -67,9 +70,17 @@ public class ProductController {
     }
 
     @DeleteMapping("delete-product/{id}")
-    public ResponseEntity<List<Product>> deleteProduct(@PathVariable Long id) {
-        productRepository.deleteById(id);
-        productCache.emptyCache();
+    public ResponseEntity<List<Product>> deleteProduct(@PathVariable Long id) throws ProductInUseException {
+//        productRepository.deleteById(id);
+  //      productCache.emptyCache();
+
+        try {
+            productRepository.deleteById(id);
+            productCache.emptyCache();
+        } catch (DataIntegrityViolationException e) {
+            throw new ProductInUseException();
+        }
+
         return new ResponseEntity<>(productRepository.findAllByOrderById(), HttpStatus.OK);
     }
 

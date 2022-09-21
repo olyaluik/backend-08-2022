@@ -95,7 +95,7 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
-    public String getLinkFromEveryPay(Order order) {
+    public EveryPayResponse getLinkFromEveryPay(Order order) {
 
         String url = "https://igw-demo.every-pay.com/api/v4/payments/oneoff";
 
@@ -116,7 +116,7 @@ public class OrderService {
 
         ResponseEntity<EveryPayResponse> response = restTemplate.exchange(url, HttpMethod.POST, entity, EveryPayResponse.class);
 
-        return response.getBody().payment_link;
+        return response.getBody();
     }
 
     public String checkIfOrderIsPaid(String payment_reference) {

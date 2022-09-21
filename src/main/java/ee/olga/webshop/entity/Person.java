@@ -23,5 +23,6 @@ public class Person {
     private String lastName;
     private String telephone;
     private String address;
+    private String password;
 
 }
