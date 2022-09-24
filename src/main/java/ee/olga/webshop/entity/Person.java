@@ -24,5 +24,6 @@ public class Person {
     private String telephone;
     private String address;
     private String password;
-
+    private String role;
 }
+

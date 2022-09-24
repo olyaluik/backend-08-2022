@@ -53,7 +53,7 @@ public class AuthController {
         if (passwordEncoder.matches(loginData.getPassword(), person.getPassword())) {
             //genereeri uus token ja tagasta see kasutajale
            // String token = "addaassda";
-            TokenResponse tokenResponse = tokenGenerator.generateNewToken(person.getPersonCode());
+            TokenResponse tokenResponse = tokenGenerator.generateNewToken(person);
             //tokenResponse.setToken(token);
             return new ResponseEntity<>(tokenResponse, HttpStatus.OK);
         } else {
