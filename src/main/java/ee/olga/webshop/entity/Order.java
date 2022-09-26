@@ -12,7 +12,6 @@ import java.util.List;
 @Table(name = "orders") //vahetame tabeli nimi
 public class Order {
     @Id
-
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq")
     private Long id;
 

@@ -1,7 +1,6 @@
 package ee.olga.webshop.controller;
 
 import ee.olga.webshop.controller.model.EveryPayResponse;
-import ee.olga.webshop.entity.Category;
 import ee.olga.webshop.entity.Order;
 import ee.olga.webshop.entity.Person;
 import ee.olga.webshop.entity.Product;
