@@ -4,9 +4,11 @@ import ee.olga.webshop.cache.ProductCache;
 import ee.olga.webshop.controller.exceptions.CategoryInUseException;
 import ee.olga.webshop.controller.exceptions.ProductInUseException;
 import ee.olga.webshop.entity.Category;
+import ee.olga.webshop.entity.Order;
 import ee.olga.webshop.entity.Product;
 import ee.olga.webshop.repository.CategoryRepository;
 import ee.olga.webshop.repository.ProductRepository;
+import ee.olga.webshop.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -160,5 +162,14 @@ public class ProductController {
     muuta ühte ainsat kindlat osa patch
     kustutada delete
      */
+
+
+    @Autowired
+    OrderService orderService;
+
+    @GetMapping(path="cart-products/{ids}", produces = {"application/json"})
+    public List<Product> getOriginalProducts(@PathVariable List<Long> ids) {
+        return orderService.findOriginalProducts(ids);
+    }
 
 }

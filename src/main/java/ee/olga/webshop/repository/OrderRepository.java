@@ -14,7 +14,7 @@ import java.util.List;
 public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findAllByPerson(Person person);
 
-    List<Order> findAllByProductsOrderByIdAsc(Product product);
+ //   List<Order> findAllByProductsOrderByIdAsc(Product product);
 }
 
 //SELECT * FROM orders WHERE orders.person_person_code = person_code

@@ -30,6 +30,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/signup").permitAll()
                 .antMatchers( "/parcel-machines/**").permitAll()
                 .antMatchers(HttpMethod.GET, "/category").permitAll()
+                .antMatchers( "/cart-products/**").permitAll()
+                .antMatchers( "/orders").permitAll()
                 .antMatchers(HttpMethod.GET, "/products").hasAuthority("admin")
                 .antMatchers( "/persons").hasAuthority("admin")
                 .antMatchers(HttpMethod.DELETE, "/category").hasAuthority("admin")

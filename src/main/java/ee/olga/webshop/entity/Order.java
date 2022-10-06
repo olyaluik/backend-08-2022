@@ -1,5 +1,6 @@
 package ee.olga.webshop.entity;
 
+import ee.olga.webshop.controller.model.CartProduct;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -21,8 +22,8 @@ public class Order {
 
     private String paidState;
 
-    @ManyToMany
-    private List<Product> products;
+    @OneToMany
+    private List<CartProduct> lineItem;
 
     @ManyToOne
     private Person person;

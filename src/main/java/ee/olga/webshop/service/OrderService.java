@@ -1,27 +1,35 @@
 package ee.olga.webshop.service;
 
 import ee.olga.webshop.cache.ProductCache;
+import ee.olga.webshop.controller.model.CartProduct;
 import ee.olga.webshop.controller.model.EveryPayData;
 import ee.olga.webshop.controller.model.EveryPayResponse;
 import ee.olga.webshop.controller.model.EveryPayState;
 import ee.olga.webshop.entity.Order;
 import ee.olga.webshop.entity.Person;
 import ee.olga.webshop.entity.Product;
+import ee.olga.webshop.repository.CartProductRepository;
 import ee.olga.webshop.repository.OrderRepository;
 import ee.olga.webshop.repository.ProductRepository;
+import lombok.extern.log4j.Log4j2;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
+import javax.transaction.Transactional;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Log4j2
 @Service
 public class OrderService {
     @Autowired
@@ -29,6 +37,9 @@ public class OrderService {
 
     @Autowired
     OrderRepository orderRepository;
+
+    @Autowired
+    CartProductRepository cartProductRepository;
 
     @Autowired
     ProductCache productCache;
@@ -48,12 +59,12 @@ public class OrderService {
     @Value("${everypay.url}")
     private String everyPayUrl;
 
-    public List<Product> findOriginalProducts(List<Product> products) {
-
+    public List<Product> findOriginalProducts(List<Long> products) {
+        log.info("Fetching original products");
         return products.stream()
                 .map(e -> {
                     try {
-                        return productCache.getProduct(e.getId());
+                        return productCache.getProduct(e);
                     } catch (Exception ex) {
                         throw new RuntimeException(ex);
                     }
@@ -61,14 +72,23 @@ public class OrderService {
                 .collect(Collectors.toList());
     }
 
-    public double calculateTotalSum(List<Product> originalProducts) {
-        return originalProducts.stream()
+    public double calculateTotalSum(List<CartProduct> cartProducts) {
+        String personCode = SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
+        log.info("Calculating total sum {}", personCode);
+        return cartProducts.stream()
 //                .filter(e -> e.isActive())
-                .mapToDouble(e -> e.getPrice())
+                .mapToDouble(e -> e.getProduct().getPrice() * e.getQuantity())
                 .sum();
     }
 
-    public Order saveOrder(Person person, List<Product> originalProducts, double totalSum) {
+    @Transactional
+    public Order saveOrder(Person person, List<CartProduct> cartProducts, double totalSum) {
+
+        String personCode = SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
+        log.info("Starting to save order{}", personCode);
+
+        cartProductRepository.saveAll(cartProducts);
+
         Order order = new Order();
         order.setCreationDate(new Date());
         order.setPerson(person);
@@ -81,7 +101,7 @@ public class OrderService {
 //            originalProducts.add(originalProduct);
 //            //Robert C. Martin (Uncle Bob) - Clean Code
 //
-        order.setProducts(originalProducts);//otse päringust pannakse andmebaasi
+        order.setLineItem(cartProducts);//otse päringust pannakse andmebaasi
         /*double totalSum = 0.0;
         for(Product product : products) {
             totalSum += product.getPrice();
